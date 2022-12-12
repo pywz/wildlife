@@ -34,15 +34,13 @@ debug -> debug information including the specific image swhere animal was detect
 
 """
 
-# extract images
+
 import sys
 import argparse
 import cv2
 print(cv2.__version__)
-from os import path, mkdir, scandir, remove # path.isdir()
+from os import path, mkdir, scandir, remove
 
-
-# analyze images
 import numpy as np
 import cv2
 from PIL import Image
@@ -64,13 +62,10 @@ store = False
 
 def setup_dir(sub_folder):
     if not path.isdir('build'):
-        # make a directory
         mkdir('./build/')
 
         if not path.isdir(f"build/{sub_folder}"):
             mkdir(f"build/{sub_folder}")
-
-    pass
 
 
 def extract_frames(vid_file, _path, sub_folder):
@@ -79,15 +74,10 @@ def extract_frames(vid_file, _path, sub_folder):
     if not path.isdir(f"./build/{sub_folder}/"):
         mkdir(f"./build/{sub_folder}/")
     mkdir(f"./build/{sub_folder}/" + vid_name)
-    # except FileExistsError:
-    #     pass
-
-    # print("vid_name", vid_name)
 
     count = 0
     vid_cap = cv2.VideoCapture(_path + vid_file)
     success, image = vid_cap.read()
-    success = True  # ?
     while True:
         # vid_cap.set(cv2.CAP_PROP_POS_MSEC, (count*1000))
         vid_cap.set(cv2.CAP_PROP_POS_MSEC, (count * 200))
@@ -105,14 +95,6 @@ def extract_frames(vid_file, _path, sub_folder):
 
 
 def analyze_frames(vid_name, num_images, folder):
-    """
-    Process
-    """
-    # print("Analyzing " + directory + '/' + "frame_" + str(num_images))
-
-    # def has_animal(image):  # returns a boolean with whether or not there is an animal
-    #     pass
-
     animals_found = []  # this will have the paths of the frames w/ animals
 
     for img_num in range(1, num_images+1):
@@ -141,9 +123,6 @@ def analyze_frames(vid_name, num_images, folder):
                                          box_indices=[0],
                                          crop_size=[224, 224])
 
-
-        # mobile = tf.keras.applications.mobilenet.MobileNet()
-
         preprocessed_image_l = preprocess_input(left)
         predictions_l = mobile.predict(preprocessed_image_l)
         results_l = imagenet_utils.decode_predictions(predictions_l)[0]
@@ -153,11 +132,8 @@ def analyze_frames(vid_name, num_images, folder):
         results_r = imagenet_utils.decode_predictions(predictions_r)[0]
 
         # filter if animal and passes the threshold
-        # print("---LEFT---", results_l)
         animal_results_l = [(thing, probability) for tag, thing, probability in results_l if
                             (thing in animals and probability > 0.3)]
-
-        # print("---RIGHT---", results_r)
         animal_results_r = [(thing, probability) for tag, thing, probability in results_r if
                             (thing in animals and probability > 0.3)]
 
@@ -169,9 +145,7 @@ def analyze_frames(vid_name, num_images, folder):
             print("RIGHT -- Animal spotted:", animal_results_r) if animal_results_r else print("No animal spotted")
 
             if animal_results_l or animal_results_r:
-                # if there is an animal...
                 print("Animal detected in " + "./build/" + folder + "/" + vid_name + "/frame_" + str(img_num) + ".jpg")
-
             print()
 
         if not store and filename not in animals_found:
@@ -180,11 +154,7 @@ def analyze_frames(vid_name, num_images, folder):
         # TODO: edit the creation date of the current "filename" to match the video's creation date
 
 
-if __name__=="__main__":
-    # allow for customizations with flags
-    # one can detaul the granularity of how many ms to get frames
-    # (e.g. 1 frame per 1 second or 1 frame per 3 seconds)
-
+if __name__ == "__main__":
     print(sys.argv)
 
     flags = [_ for _ in sys.argv if _[0] == '-']
@@ -202,22 +172,19 @@ if __name__=="__main__":
 
     want = [_ for _ in sys.argv if (_[0] != '-' and _ != 'wildlife.py')]
 
-    # $ python3 wildlife.py -a Beaman
-    # $ python3 wildlife.py -a Beaman MillsCreek
-    # if -a set, go to specified folder/s
-
     if _all:
+        # TODO: add logic for -a
+        # $ python3 wildlife.py -a Beaman
+        # $ python3 wildlife.py -a Beaman MillsCreek
+        # if -a set, go to specified folder/s
         pass
     else:
         folder = want[0]  # Beaman
 
         sub_folders = want[1:]  # ["bm-y22-m01-s01-c20", "bm-y22-m01-s01-c21"]
 
-        # validate that this folder exists
         if not path.exists('./' + folder):
             raise NotADirectoryError(f"{folder} is not a folder")
-
-        # validate sub_folders in folder
 
         for sub in sub_folders:
             if not path.exists('./' + folder + '/' + sub):
@@ -231,6 +198,3 @@ if __name__=="__main__":
                     setup_dir(sub_folder)
                     vid_name, num_images = extract_frames(video.name, cur_path, sub_folder)
                     analyze_frames(vid_name, num_images, sub_folder)
-            # extract_images(sys.argv[1])
-
-
